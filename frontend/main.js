@@ -12,23 +12,17 @@ const frameStates = {
 const btn = document.getElementsByClassName('promocode-button')[0];
 const input = document.getElementsByClassName(baseInputClassName)[0];
 
-const random = (min, max) => {
-    return Math.round(Math.random() * (max - min) + min);
+const checkPromocode = (promocode) => {
+    return axios({
+        method: 'post',
+        url: 'http://localhost:3000/promocode',
+        data: { promocode },
+    });
 }
 
-const fakeCheckPromocode = (promocode) => {
-    return new Promise((resolve) => {
-        const delay = random(1, 5) * 1000;
-        setTimeout(() => {
-            if (promocode === '') resolve(0);
-            resolve(random(1, 2));
-        }, delay);
-    });
-};
-
-const paintFrame = (result) => {
-    if (result in frameStates) {
-        input.classList.value = `${baseInputClassName} ${frameStates[result]}`;
+const paintFrame = (status) => {
+    if (status in frameStates) {
+        input.classList.value = `${baseInputClassName} ${frameStates[status]}`;
     } else {
         console.error('Incorrect result');
         input.classList.value = `${baseInputClassName} ${frameStates[initialFrameState]}`;
@@ -36,10 +30,12 @@ const paintFrame = (result) => {
 };
 
 const onBtnClick = () => {
-    const currentPromocode = input.value;
     btn.disabled = true;
-    fakeCheckPromocode(currentPromocode)
-        .then(paintFrame)
+    checkPromocode(input.value)
+        .then((res) => {
+            const { status } = res.data;
+            paintFrame(status);
+        })
         .finally(() => {
             btn.disabled = false;
         })
